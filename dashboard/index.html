@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShadowWallAI — Live Firewall Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root{
+      --void:#06090E;
+      --panel:#0D121A;
+      --panel-2:#131B26;
+      --border:#1C2633;
+      --border-soft:#141D28;
+      --text-hi:#ECF2F8;
+      --text-mid:#8B98A5;
+      --text-dim:#4B5768;
+      --blocked:#F0526B;
+      --blocked-dim:rgba(240,82,107,0.12);
+      --allowed:#2DD9A7;
+      --allowed-dim:rgba(45,217,167,0.12);
+      --warn:#F5A623;
+      --warn-dim:rgba(245,166,35,0.12);
+      --info:#5B8DEF;
+      --info-dim:rgba(91,141,239,0.12);
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      background:
+        radial-gradient(ellipse 900px 500px at 15% -10%, rgba(91,141,239,0.07), transparent 60%),
+        radial-gradient(ellipse 700px 400px at 100% 0%, rgba(240,82,107,0.06), transparent 55%),
+        var(--void);
+      color:var(--text-hi);
+      font-family:'Inter',sans-serif;
+      min-height:100vh;
+      padding:28px;
+    }
+    .mono{font-family:'JetBrains Mono',monospace;}
+
+    /* ---- Header ---- */
+    .topbar{
+      display:flex; align-items:flex-start; justify-content:space-between;
+      padding-bottom:18px; margin-bottom:6px;
+      border-bottom:1px solid var(--border);
+    }
+    .brand{display:flex; align-items:center; gap:12px;}
+    .brand-icon{
+      width:42px;height:42px;border-radius:10px;
+      background:var(--panel-2); border:1px solid var(--border);
+      display:flex;align-items:center;justify-content:center;
+      color:var(--info); box-shadow:0 0 15px rgba(91,141,239,0.15);
+    }
+    .brand h1{
+      font-size:22px; margin:0; letter-spacing:0.02em; font-weight:800;
+    }
+    .brand p{
+      margin:2px 0 0; font-size:11px; color:var(--text-mid);
+      text-transform:uppercase; letter-spacing:0.12em; font-weight:600;
+    }
+    .status-cluster{display:flex; align-items:center; gap:18px;}
+    .live-pill{
+      display:flex; align-items:center; gap:7px;
+      font-size:11.5px; font-weight:600; letter-spacing:0.06em;
+      padding:6px 12px; border-radius:999px;
+      background:var(--panel-2); border:1px solid var(--border);
+      color:var(--text-mid);
+    }
+    .live-pill.connected{color:var(--allowed);}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--text-dim);}
+    .live-pill.connected .dot{background:var(--allowed); box-shadow:0 0 0 0 rgba(45,217,167,0.6); animation:pulse 1.8s infinite;}
+    @keyframes pulse{
+      0%{box-shadow:0 0 0 0 rgba(45,217,167,0.55);}
+      70%{box-shadow:0 0 0 8px rgba(45,217,167,0);}
+      100%{box-shadow:0 0 0 0 rgba(45,217,167,0);}
+    }
+    .clock{font-size:12px; color:var(--text-dim);}
+
+    /* ---- Threat Oscilloscope ---- */
+    .scope-wrap{
+      margin:18px 0 26px; padding:14px 18px;
+      background:var(--panel); border:1px solid var(--border); border-radius:12px;
+      display:flex; align-items:center; gap:16px;
+    }
+    .scope-label{
+      font-size:10.5px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-dim);
+      white-space:nowrap; display:flex; flex-direction:column; gap:2px;
+    }
+    .scope-label b{color:var(--text-mid); font-size:11px;}
+    canvas#scope{flex:1; height:46px; width:100%; display:block;}
+
+    /* ---- Stat Cards ---- */
+    .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:22px;}
+    .card{
+      background:var(--panel); border:1px solid var(--border); border-radius:12px;
+      padding:18px 20px; position:relative; overflow:hidden;
+    }
+    .card::after{
+      content:''; position:absolute; top:0; left:0; right:0; height:2px;
+      background:var(--accent, var(--info));
+    }
+    .card.total::after{background:var(--info);}
+    .card.blocked::after{background:var(--blocked);}
+    .card.allowed::after{background:var(--allowed);}
+    .card-top{display:flex; align-items:center; justify-content:space-between;}
+    .card-label{font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-mid); font-weight:600;}
+    .card-icon{width:32px;height:32px; border-radius:8px; display:flex;align-items:center;justify-content:center;}
+    .card.total .card-icon{background:var(--info-dim); color:var(--info);}
+    .card.blocked .card-icon{background:var(--blocked-dim); color:var(--blocked);}
+    .card.allowed .card-icon{background:var(--allowed-dim); color:var(--allowed);}
+    .card-num{font-size:32px; font-weight:800; margin:10px 0 2px; font-family:'JetBrains Mono',monospace;}
+    .card.total .card-num{color:var(--text-hi);}
+    .card.blocked .card-num{color:var(--blocked);}
+    .card.allowed .card-num{color:var(--allowed);}
+    .card-sub{font-size:12px; color:var(--text-dim);}
+
+    /* ---- Table & Filters ---- */
+    .panel{background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden;}
+    .panel-head{
+      display:flex; align-items:center; justify-content:space-between; gap:16px;
+      padding:16px 20px; border-bottom:1px solid var(--border); flex-wrap:wrap;
+    }
+    .panel-title{font-size:11.5px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-mid); font-weight:700; display:flex; align-items:center; gap:8px;}
+    .toolbar{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+    .search{
+      display:flex; align-items:center; gap:7px;
+      background:var(--panel-2); border:1px solid var(--border); border-radius:8px;
+      padding:6px 10px; min-width:220px;
+    }
+    .search input{
+      background:transparent; border:none; outline:none; color:var(--text-hi);
+      font-size:12.5px; width:100%; font-family:'JetBrains Mono',monospace;
+    }
+    .search input::placeholder{color:var(--text-dim);}
+    .pill-group{display:flex; gap:6px;}
+    .pill-btn{
+      font-size:11.5px; font-weight:600; letter-spacing:0.03em;
+      padding:6px 12px; border-radius:7px; cursor:pointer;
+      background:var(--panel-2); border:1px solid var(--border); color:var(--text-mid);
+      transition:all .15s ease;
+    }
+    .pill-btn:hover{color:var(--text-hi); border-color:#2A3543;}
+    .pill-btn.active{background:var(--info-dim); color:var(--info); border-color:rgba(91,141,239,0.35);}
+    .pause-btn{
+      display:flex; align-items:center; gap:6px;
+      font-size:11.5px; font-weight:600;
+      padding:6px 12px; border-radius:7px; cursor:pointer;
+      background:var(--panel-2); border:1px solid var(--border); color:var(--text-mid);
+    }
+    .pause-btn.on{color:var(--warn); border-color:rgba(245,166,35,0.35); background:var(--warn-dim);}
+    
+    table{width:100%; border-collapse:collapse; font-size:12.5px;}
+    thead th{
+      text-align:left; padding:11px 16px; background:var(--panel-2);
+      color:var(--text-dim); font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em;
+      border-bottom:1px solid var(--border); font-weight:700;
+    }
+    tbody td{padding:11px 16px; border-bottom:1px solid var(--border-soft); vertical-align:middle;}
+    tbody tr{transition:background .15s ease; cursor:pointer;}
+    tbody tr:hover{background:rgba(255,255,255,0.03);}
+    tbody tr.new-row{animation:slidein .4s ease;}
+    @keyframes slidein{
+      from{opacity:0; transform:translateY(-6px);}
+      to{opacity:1; transform:translateY(0);}
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap:5px;
+      font-size:10.5px; font-weight:800; letter-spacing:0.04em;
+      padding:4px 9px; border-radius:6px; font-family:'JetBrains Mono',monospace;
+    }
+    .badge.blocked{background:var(--blocked-dim); color:var(--blocked); border:1px solid rgba(240,82,107,0.3);}
+    .badge.allowed{background:var(--allowed-dim); color:var(--allowed); border:1px solid rgba(45,217,167,0.3);}
+    .sev{font-size:10.5px; font-weight:700; letter-spacing:0.04em; padding:3px 8px; border-radius:5px;}
+    .sev.critical{background:var(--blocked-dim); color:var(--blocked);}
+    .sev.high{background:var(--warn-dim); color:var(--warn);}
+    .sev.medium{background:var(--info-dim); color:var(--info);}
+    .sev.low{color:var(--text-dim);}
+    .sev.none{color:var(--text-dim);}
+    .method{font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--text-mid);}
+    .path{font-family:'JetBrains Mono',monospace; color:var(--text-hi);}
+    .payload{
+      font-family:'JetBrains Mono',monospace; color:var(--text-mid); font-size:11.5px;
+      max-width:340px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .ts{color:var(--text-dim); font-family:'JetBrains Mono',monospace; font-size:11px; white-space:nowrap;}
+    .empty-state{text-align:center; padding:56px 20px; color:var(--text-dim);}
+    .empty-state svg{opacity:.35; margin-bottom:10px;}
+    .empty-state p{margin:0; font-size:13px;}
+
+    /* ---- Drawer / Modal ---- */
+    .drawer-overlay{
+      position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(3px);
+      display:none; opacity:0; transition:opacity .2s ease; z-index:100;
+    }
+    .drawer-overlay.active{display:block; opacity:1;}
+    .drawer{
+      position:fixed; top:0; right:0; bottom:0; width:480px; max-width:100vw;
+      background:var(--panel); border-left:1px solid var(--border);
+      padding:24px; display:flex; flex-direction:column; gap:20px;
+      box-shadow:-10px 0 30px rgba(0,0,0,0.5); z-index:101;
+      transform:translateX(100%); transition:transform .25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .drawer.active{transform:translateX(0);}
+    .drawer-header{display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); pb:16px;}
+    .drawer-title{font-size:14px; font-weight:800; text-transform:uppercase; letter-spacing:0.08em;}
+    .close-btn{background:transparent; border:none; color:var(--text-mid); cursor:pointer;}
+    .drawer-section{display:flex; flex-direction:column; gap:8px;}
+    .drawer-label{font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-dim); font-weight:700;}
+    .drawer-box{
+      background:var(--panel-2); border:1px solid var(--border); border-radius:8px;
+      padding:12px; font-family:'JetBrains Mono',monospace; font-size:12px; word-break:break-all;
+      color:var(--text-hi); max-height:220px; overflow-y:auto;
+    }
+
+    /* ---- Custom Copyright Footer ---- */
+    .footer{
+      margin-top:24px; display:flex; justify-content:space-between; align-items:center;
+      font-size:11px; color:var(--text-dim); padding:12px 4px 0; border-top:1px solid var(--border-soft);
+    }
+    .copyright-badge{
+      display:inline-flex; align-items:center; gap:6px;
+      color:var(--text-mid); font-weight:600;
+    }
+    .copyright-badge b{color:var(--info);}
+
+    ::-webkit-scrollbar{height:8px; width:8px;}
+    ::-webkit-scrollbar-thumb{background:var(--border); border-radius:4px;}
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-icon"><i data-lucide="shield" style="width:22px;height:22px;"></i></div>
+      <div>
+        <h1>ShadowWall<span style="color:var(--info);">AI</span></h1>
+        <p>AI-Aware Web Application Firewall</p>
+      </div>
+    </div>
+    <div class="status-cluster">
+      <span class="clock mono" id="clock">--:--:--</span>
+      <div class="live-pill" id="conn-pill"><span class="dot"></span><span id="conn-text">Connecting…</span></div>
+    </div>
+  </div>
+
+  <div class="scope-wrap">
+    <div class="scope-label">Threat<br><b>Pulse</b></div>
+    <canvas id="scope"></canvas>
+  </div>
+
+  <div class="stats">
+    <div class="card total">
+      <div class="card-top">
+        <span class="card-label">Total Requests</span>
+        <div class="card-icon"><i data-lucide="activity" style="width:16px;height:16px;"></i></div>
+      </div>
+      <p class="card-num" id="total-count">0</p>
+      <p class="card-sub" id="total-sub">Awaiting traffic</p>
+    </div>
+    <div class="card blocked">
+      <div class="card-top">
+        <span class="card-label">Threats Blocked</span>
+        <div class="card-icon"><i data-lucide="shield-alert" style="width:16px;height:16px;"></i></div>
+      </div>
+      <p class="card-num" id="blocked-count">0</p>
+      <p class="card-sub" id="blocked-sub">0% of traffic</p>
+    </div>
+    <div class="card allowed">
+      <div class="card-top">
+        <span class="card-label">Allowed Traffic</span>
+        <div class="card-icon"><i data-lucide="shield-check" style="width:16px;height:16px;"></i></div>
+      </div>
+      <p class="card-num" id="allowed-count">0</p>
+      <p class="card-sub" id="allowed-sub">0% of traffic</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <span class="panel-title"><i data-lucide="terminal" style="width:14px;height:14px;"></i> Traffic Monitor</span>
+      <div class="toolbar">
+        <div class="search">
+          <i data-lucide="search" style="width:13px;height:13px;color:var(--text-dim);"></i>
+          <input id="search-input" type="text" placeholder="Filter path or payload…">
+        </div>
+        <div class="pill-group" id="filter-group">
+          <button class="pill-btn active" data-filter="all">All</button>
+          <button class="pill-btn" data-filter="blocked">Blocked</button>
+          <button class="pill-btn" data-filter="allowed">Allowed</button>
+        </div>
+        <button class="pause-btn" id="pause-btn"><i data-lucide="pause" style="width:13px;height:13px;"></i><span>Pause</span></button>
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Severity</th>
+            <th>Method</th>
+            <th>Path</th>
+            <th>Threat Category</th>
+            <th>Payload</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody id="log-table-body"></tbody>
+      </table>
+      <div class="empty-state" id="empty-state">
+        <div><i data-lucide="radar" style="width:34px;height:34px;"></i></div>
+        <p>No traffic yet — this view updates the moment a request comes in.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Payload Drawer -->
+  <div class="drawer-overlay" id="drawer-overlay"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-header">
+      <span class="drawer-title" id="drawer-title">Event Details</span>
+      <button class="close-btn" id="drawer-close"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+    </div>
+    <div class="drawer-section">
+      <span class="drawer-label">Endpoint Target</span>
+      <div class="drawer-box" id="drawer-path">—</div>
+    </div>
+    <div class="drawer-section">
+      <span class="drawer-label">Threat Category</span>
+      <div class="drawer-box" id="drawer-category">—</div>
+    </div>
+    <div class="drawer-section">
+      <span class="drawer-label">Full Raw Payload</span>
+      <div class="drawer-box" id="drawer-payload">—</div>
+    </div>
+  </div>
+
+  <!-- Footer with Custom Copyright -->
+  <div class="footer">
+    <span class="copyright-badge">
+      <i data-lucide="code" style="width:13px;height:13px;color:var(--info);"></i>
+      ShadowWallAI Engine © 2026 · Designed & Developed by <b>Goutham Joshi</b>
+    </span>
+    <span id="row-count">0 events</span>
+  </div>
+
+<script>
+lucide.createIcons();
+
+// ---- clock ----
+function tickClock(){
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB');
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+// ---- state ----
+let total = 0, blocked = 0, allowed = 0;
+let paused = false;
+let activeFilter = 'all';
+let searchTerm = '';
+const rows = [];
+const emptyState = document.getElementById('empty-state');
+const tbody = document.getElementById('log-table-body');
+const rowCountEl = document.getElementById('row-count');
+
+function updateEmptyState(){
+  emptyState.style.display = rows.length ? 'none' : 'block';
+}
+
+function applyFilters(){
+  let visible = 0;
+  rows.forEach(r => {
+    const statusOk = activeFilter === 'all' ||
+      (activeFilter === 'blocked' && r.blockedFlag) ||
+      (activeFilter === 'allowed' && !r.blockedFlag);
+    const text = (r.path + ' ' + r.payload).toLowerCase();
+    const searchOk = !searchTerm || text.includes(searchTerm);
+    const show = statusOk && searchOk;
+    r.el.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  rowCountEl.textContent = `${visible} of${rows.length} events`;
+}
+
+document.getElementById('search-input').addEventListener('input', (e) => {
+  searchTerm = e.target.value.trim().toLowerCase();
+  applyFilters();
+});
+
+document.querySelectorAll('.pill-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    applyFilters();
+  });
+});
+
+const pauseBtn = document.getElementById('pause-btn');
+pauseBtn.addEventListener('click', () => {
+  paused = !paused;
+  pauseBtn.classList.toggle('on', paused);
+  pauseBtn.querySelector('span').textContent = paused ? 'Resume' : 'Pause';
+  pauseBtn.querySelector('i').setAttribute('data-lucide', paused ? 'play' : 'pause');
+  lucide.createIcons();
+});
+
+// ---- Drawer Interactivity ----
+const drawerOverlay = document.getElementById('drawer-overlay');
+const drawer = document.getElementById('drawer');
+const drawerClose = document.getElementById('drawer-close');
+
+function openDrawer(data){
+  document.getElementById('drawer-path').textContent = `${data.method}${data.path}`;
+  document.getElementById('drawer-category').textContent = data.threatType;
+  document.getElementById('drawer-payload').textContent = data.payload;
+  drawerOverlay.classList.add('active');
+  drawer.classList.add('active');
+}
+
+function closeDrawer(){
+  drawerOverlay.classList.remove('active');
+  drawer.classList.remove('active');
+}
+
+drawerClose.addEventListener('click', closeDrawer);
+drawerOverlay.addEventListener('click', closeDrawer);
+
+// ---- severity classification ----
+function classifySeverity(threatType, blockedFlag){
+  if (!blockedFlag) return { label: '—', cls: 'none' };
+  const t = (threatType || '').toLowerCase();
+  if (/sql|command|injection|rce|remote code|prompt override|prompt injection/.test(t)) {
+    return { label: 'CRITICAL', cls: 'critical' };
+  }
+  if (/ssrf|xss|path traversal|traversal|metadata|xxe/.test(t)) {
+    return { label: 'HIGH', cls: 'high' };
+  }
+  if (/rate limit|suspicious|bot|scan|nosql/.test(t)) {
+    return { label: 'MEDIUM', cls: 'medium' };
+  }
+  return { label: 'LOW', cls: 'low' };
+}
+
+// ---- threat oscilloscope ----
+const scopeCanvas = document.getElementById('scope');
+const scopeCtx = scopeCanvas.getContext('2d');
+let scopeValues = new Array(120).fill(0);
+let scopeTargets = new Array(120).fill(0);
+
+function resizeScope(){
+  scopeCanvas.width = scopeCanvas.clientWidth * devicePixelRatio;
+  scopeCanvas.height = scopeCanvas.clientHeight * devicePixelRatio;
+}
+window.addEventListener('resize', resizeScope);
+resizeScope();
+
+function pushScopeSpike(magnitude){
+  scopeTargets.push(magnitude);
+  scopeTargets.shift();
+}
+
+function drawScope(){
+  const w = scopeCanvas.width, h = scopeCanvas.height;
+  scopeCtx.clearRect(0, 0, w, h);
+  for (let i = 0; i < scopeValues.length; i++){
+    const decay = scopeTargets[i] * 0.35 + (Math.random() * 0.03);
+    scopeValues[i] = scopeValues[i] * 0.85 + decay * 0.15;
+    scopeTargets[i] *= 0.9;
+  }
+  scopeCtx.beginPath();
+  const step = w / (scopeValues.length - 1);
+  scopeValues.forEach((v, i) => {
+    const x = i * step;
+    const y = h / 2 - v * (h / 2 - 4);
+    if (i === 0) scopeCtx.moveTo(x, y); else scopeCtx.lineTo(x, y);
+  });
+  const grad = scopeCtx.createLinearGradient(0, 0, w, 0);
+  grad.addColorStop(0, '#2DD9A7');
+  grad.addColorStop(0.5, '#5B8DEF');
+  grad.addColorStop(1, '#F0526B');
+  scopeCtx.strokeStyle = grad;
+  scopeCtx.lineWidth = 2 * devicePixelRatio;
+  scopeCtx.lineJoin = 'round';
+  scopeCtx.stroke();
+  requestAnimationFrame(drawScope);
+}
+requestAnimationFrame(drawScope);
+
+// ---- connection status ----
+const connPill = document.getElementById('conn-pill');
+const connText = document.getElementById('conn-text');
+
+function setConn(state){
+  if (state === 'open'){
+    connPill.classList.add('connected');
+    connText.textContent = 'Live';
+  } else if (state === 'closed'){
+    connPill.classList.remove('connected');
+    connText.textContent = 'Disconnected';
+  } else {
+    connPill.classList.remove('connected');
+    connText.textContent = 'Connecting…';
+  }
+}
+
+// ---- websocket feed ----
+let ws;
+function connect(){
+  ws = new WebSocket('ws://localhost:8000/ws/logs');
+  ws.onopen = () => setConn('open');
+  ws.onclose = () => { setConn('closed'); setTimeout(connect, 2000); };
+  ws.onerror = () => ws.close();
+  ws.onmessage = (event) => {
+    if (paused) return;
+    const log = JSON.parse(event.data);
+    total++;
+    if (log.blocked) blocked++; else allowed++;
+    document.getElementById('total-count').textContent = total;
+    document.getElementById('blocked-count').textContent = blocked;
+    document.getElementById('allowed-count').textContent = allowed;
+    document.getElementById('total-sub').textContent = `${total} event${total === 1 ? '' : 's'} observed`;
+    document.getElementById('blocked-sub').textContent = `${total ? Math.round(blocked/total*100) : 0}% of traffic`;
+    document.getElementById('allowed-sub').textContent = `${total ? Math.round(allowed/total*100) : 0}% of traffic`;
+    pushScopeSpike(log.blocked ? (0.6 + Math.random()*0.4) : 0.15);
+    const sev = classifySeverity(log.threat_type, log.blocked);
+    const time = new Date().toLocaleTimeString('en-GB');
+    const payload = log.payload || '—';
+    const row = document.createElement('tr');
+    row.className = 'new-row';
+    row.innerHTML = `
+      <td><span class="badge ${log.blocked ? 'blocked' : 'allowed'}">${log.blocked ? 'BLOCKED · 403' : 'ALLOWED · 200'}</span></td>
+      <td><span class="sev ${sev.cls}">${sev.label}</span></td>
+      <td class="method">${log.method}</td>
+      <td class="path">${log.path}</td>
+      <td>${log.threat_type || 'Clean'}</td>
+      <td class="payload" title="Click for details">${payload}</td>
+      <td class="ts">${time}</td>
+    `;
+    
+    row.addEventListener('click', () => {
+      openDrawer({
+        method: log.method,
+        path: log.path,
+        threatType: log.threat_type || 'Clean',
+        payload: payload
+      });
+    });
+
+    tbody.insertBefore(row, tbody.firstChild);
+    rows.unshift({ el: row, blockedFlag: !!log.blocked, path: log.path || '', payload });
+    updateEmptyState();
+    applyFilters();
+  };
+}
+connect();
+updateEmptyState();
+</script>
+</body>
+</html>
