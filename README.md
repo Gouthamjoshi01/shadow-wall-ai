@@ -5,38 +5,37 @@
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square)](https://www.python.org)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-**ShadowWallAI** is a real-time, AI-augmented Web Application Firewall (WAF) designed to inspect, classify, and block web attacks—from traditional vulnerabilities (**SQLi, XSS, RCE, LFI, SSRF**) to **LLM/AI threat vectors** (Prompt Injections, System Role Overrides, DAN Jailbreaks).
+**ShadowWallAI** is a real-time, AI-augmented Web Application Firewall (WAF) designed to inspect, classify, and block web attacks—ranging from traditional web exploits (**SQLi, XSS, RCE, LFI, SSRF**) to **LLM/AI threat vectors** (Prompt Injections, System Role Overrides, DAN Jailbreaks).
 
 ---
 
-## 📸 Demo Screenshots
+## 📸 System Telemetry & Console Demos
 
-| 📊 Live Monitoring Dashboard | ⚡ WAF Engine Logs |
+| 📊 Live Monitoring Dashboard | ⚡ Backend WAF Logs |
 | :---: | :---: |
-| ![Dashboard]( />) | ![Backend Logs]() |
+| ![Dashboard Console](assets/Screenshot_2026-07-27_14_10_26.png) | ![Backend Server Logs](assets/Screenshot_2026-07-27_14_10_53.jpg) |
 
-<p align="center">
-  <b>🧪 Attack Vector Simulation Suite (15+ Test Vectors)</b><br>
-  <img src="assets/attack_simulation.png" width="90%" alt="Attack Simulation Suite">
-</p>
-
----
-
-## ✨ Features & Coverage
-
-* ⚡ **WebSocket Live Telemetry**: Real-time traffic streaming to the dashboard without polling overhead.
-* 🧠 **Dual-Engine Filtering**: Instant signature matching paired with LLM context analysis for subtle payloads.
-* 🎯 **Broad Defense Scope**: Protects against Web Exploits, Auth Bypass, and AI Prompt Injections / Exfiltration.
+| 🌐 Python Web Server Terminal | 🧪 15+ Vector Threat Simulation Suite |
+| :---: | :---: |
+| ![Frontend Web Server](assets/Screenshot_2026-07-27_14_11_04.png) | ![Attack Test Suite](assets/Screenshot_2026-07-27_14_11_15.jpg) |
 
 ---
 
-## 🚀 Quick Start
+## ✨ Features & Defense Coverage
+
+* ⚡ **WebSocket Telemetry**: Real-time traffic streaming directly to the monitoring console without polling.
+* 🧠 **Dual-Engine Inspection**: Microsecond signature matching paired with LLM context evaluation.
+* 🎯 **Broad Vulnerability Shield**: Blocks traditional OWASP Top 10 vulnerabilities alongside LLM Jailbreaks, Prompt Injections, and Data Exfiltration attempts.
+
+---
+
+## 🚀 Quick Start Guide
 
 ```bash
 # 1. Clone Repository
 git clone [https://github.com/Gouthamjoshi01/shadow-wall-ai.git](https://github.com/Gouthamjoshi01/shadow-wall-ai.git) && cd shadow-wall-ai
 
-# 2. Start Backend Server (Terminal 1)
+# 2. Start WAF Backend Server (Terminal 1)
 source venv/bin/activate
 cd waf_server && uvicorn main:app --reload --port 8000
 
@@ -44,5 +43,5 @@ cd waf_server && uvicorn main:app --reload --port 8000
 cd ../dashboard && python3 -m http.server 5173
 # 👉 Access UI at http://localhost:5173
 
-# 4. Run Threat Simulation Suite (Terminal 3)
+# 4. Launch Threat Vector Suite (Terminal 3)
 python3 test_attacks.py
