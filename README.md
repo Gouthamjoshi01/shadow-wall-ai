@@ -1,107 +1,48 @@
 # 🛡️ ShadowWallAI — AI-Aware Web Application Firewall (WAF)
 
-**ShadowWallAI** is a real-time, AI-augmented Web Application Firewall (WAF) designed to detect, classify, and block modern web application attack vectors—including traditional exploits (SQLi, XSS, RCE, LFI, SSRF) and zero-day LLM/AI vulnerabilities (Prompt Injections, Jailbreaks, System Role Overrides).
+[![Security](https://img.shields.io/badge/Security-AI--WAF-blue?style=flat-square)](https://github.com/Gouthamjoshi01/shadow-wall-ai)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=flat-square)](https://fastapi.tiangolo.com)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square)](https://www.python.org)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-![ShadowWallAI Interface](https://img.shields.io/badge/Security-AI--WAF-blue?style=for-the-badge)
-![FastAPI](https://img.shields.io/badge/Backend-FastAPI-green?style=for-the-badge)
-![Python](https://img.shields.io/badge/Language-Python_3.11+-yellow?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-red?style=for-the-badge)
-
----
-
-## ✨ Features
-
-- **Real-Time Threat Intelligence Feed:** WebSocket-driven live stream displaying incoming traffic events instantly without polling.
-- **AI-Powered Payload Inspection:** Integrates LLM analysis to evaluate complex payloads and classify subtle anomalies like prompt injections and jailbreaks.
-- **Threat Vector Detection:**
-  - SQL Injection (SQLi)
-  - Cross-Site Scripting (XSS)
-  - OS Command Injection (RCE)
-  - Path Traversal & Local File Inclusion (LFI)
-  - XML External Entity (XXE) Injection
-  - Server-Side Request Forgery (SSRF)
-  - NoSQL Injection
-  - AI / LLM Prompt Injections & Jailbreaks (DAN mode, override attempts)
-- **Real-Time Visuals & Analytics:** Live Threat Pulse Oscilloscope, severity tagging (CRITICAL, HIGH, MEDIUM), traffic stats, and payload search filters.
-- **Detailed Event Inspector:** Interactive slide-out drawer providing full raw payload examination.
+**ShadowWallAI** is a real-time, AI-augmented Web Application Firewall (WAF) designed to inspect, classify, and block web attacks—from traditional vulnerabilities (**SQLi, XSS, RCE, LFI, SSRF**) to **LLM/AI threat vectors** (Prompt Injections, System Role Overrides, DAN Jailbreaks).
 
 ---
 
-## 🏗️ Architecture Overview
+## 📸 Demo Screenshots
 
-                          +------------------------+
-                          |   Incoming HTTP Request|
-                          +-----------+------------+
-                                      |
-                                      v
-                        +-------------+------------+
-                        |   ShadowWallAI WAF Core  |
-                        |     (FastAPI Engine)     |
-                        +-------------+------------+
-                                      |
-                  +-------------------+-------------------+
-                  |                                       |
-                  v                                       v
-      +-----------+-----------+               +-----------+-----------+
-      |  Static Rule Engine   |               |   LLM / AI Analyzer   |
-      | (Regex & Heuristics)  |               | (Context & Anomaly)   |
-      +-----------+-----------+               +-----------+-----------+
-                  |                                       |
-                  +-------------------+-------------------+
-                                      |
-                                      v
-                        +-------------+------------+
-                        |  Decision: ALLOW (200)   |
-                        |      or BLOCK (403)      |
-                        +-------------+------------+
-                                      |
-                                      v
-                        +-------------+------------+
-                        | WebSocket Stream Broadcast |
-                        +-------------+------------+
-                                      |
-                                      v
-                        +-------------+------------+
-                        |  ShadowWallAI Web Dashboard|
-                        +--------------------------+
+| 📊 Live Monitoring Dashboard | ⚡ WAF Engine Logs |
+| :---: | :---: |
+| ![Dashboard](assets/dashboard.png) | ![Backend Logs](assets/backend_logs.png) |
+
+<p align="center">
+  <b>🧪 Attack Vector Simulation Suite (15+ Test Vectors)</b><br>
+  <img src="assets/attack_simulation.png" width="90%" alt="Attack Simulation Suite">
+</p>
 
 ---
 
-## 🚀 Quickstart Guide
+## ✨ Features & Coverage
 
-### Prerequisites
-- Python 3.10+
-- Virtualenv
+* ⚡ **WebSocket Live Telemetry**: Real-time traffic streaming to the dashboard without polling overhead.
+* 🧠 **Dual-Engine Filtering**: Instant signature matching paired with LLM context analysis for subtle payloads.
+* 🎯 **Broad Defense Scope**: Protects against Web Exploits, Auth Bypass, and AI Prompt Injections / Exfiltration.
 
-### 1. Repository Setup & Environment
-git clone [https://github.com/YOUR_USERNAME/shadowwall-ai.git](https://github.com/YOUR_USERNAME/shadowwall-ai.git)
-cd shadowwall-ai
+---
 
-# Activate Virtual Environment
+## 🚀 Quick Start
+
+```bash
+# 1. Clone Repository
+git clone [https://github.com/Gouthamjoshi01/shadow-wall-ai.git](https://github.com/Gouthamjoshi01/shadow-wall-ai.git) && cd shadow-wall-ai
+
+# 2. Start Backend Server (Terminal 1)
 source venv/bin/activate
-pip install -r requirements.txt
+cd waf_server && uvicorn main:app --reload --port 8000
 
-### 2. Configure Environment Variables
-Create a .env file inside waf_server/:
-AGENT_ROUTER_KEY=your_llm_api_key_here
+# 3. Serve Frontend Dashboard (Terminal 2)
+cd ../dashboard && python3 -m http.server 5173
+# 👉 Access UI at http://localhost:5173
 
-### 3. Launch WAF Backend Engine
-cd waf_server
-uvicorn main:app --reload --port 8000
-
-### 4. Launch Dashboard
-In a new terminal window:
-cd dashboard
-python3 -m http.server 5173
-
-Open http://localhost:5173 in your browser.
-
-### 5. Execute Simulation Suite
-In another terminal tab, run the attack testing suite:
+# 4. Run Threat Simulation Suite (Terminal 3)
 python3 test_attacks.py
-
----
-
-## 📜 License
-
-Distributed under the MIT License. See LICENSE for more information.
