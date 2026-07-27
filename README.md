@@ -13,7 +13,8 @@
 
 | 📊 Live Monitoring Dashboard | ⚡ WAF Engine Logs |
 | :---: | :---: |
-| ![Dashboard](assets/dashboard.png) | ![Backend Logs](assets/backend_logs.png) |
+| ![Dashboard](<img width="1920" height="891" alt="Screenshot_2026-07-27_14_10_26" src="https://github.com/user-attachments/assets/a980ac90-2ce9-4cb9-bd68-66646c2547d7" />
+) | ![Backend Logs](assets/backend_logs.png) |
 
 <p align="center">
   <b>🧪 Attack Vector Simulation Suite (15+ Test Vectors)</b><br>
