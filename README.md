@@ -29,17 +29,27 @@
 
 ## 🚀 Quick Start Guide
 
-```bash
-# 1. Clone Repository
-git clone [https://github.com/Gouthamjoshi01/shadow-wall-ai.git](https://github.com/Gouthamjoshi01/shadow-wall-ai.git) && cd shadow-wall-ai
+### 1. Clone Repository & Setup Environment
+`git clone https://github.com/Gouthamjoshi01/shadow-wall-ai.git && cd shadow-wall-ai`  
+`source venv/bin/activate`
 
-# 2. Start WAF Backend Server (Terminal 1)
-source venv/bin/activate
-cd waf_server && uvicorn main:app --reload --port 8000
+### 2. Configure Environment Variables
+Create a `.env` file inside the `waf_server` directory and add your API token:  
+`cat <<EOF> waf_server/.env`  
+`AGENT_ROUTER_KEY=your_actual_api_key_here`  
+`EOF`
 
-# 3. Serve Frontend Dashboard (Terminal 2)
-cd ../dashboard && python3 -m http.server 5173
-# 👉 Access UI at http://localhost:5173
+### 3. Start WAF Backend Server (Terminal 1)
+`cd waf_server && uvicorn main:app --reload --port 8000`
 
-# 4. Launch Threat Vector Suite (Terminal 3)
-python3 test_attacks.py
+### 4. Serve Frontend Dashboard (Terminal 2)
+`cd ../dashboard && python3 -m http.server 5173`  
+👉 Access UI at **`http://localhost:5173`**
+
+### 5. Launch Threat Vector Suite (Terminal 3)
+`python3 test_attacks.py`
+
+---
+
+## 📜 License
+Distributed under the **MIT License**.
