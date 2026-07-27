@@ -13,11 +13,11 @@
 
 | 📊 Live Monitoring Dashboard | ⚡ Backend WAF Logs |
 | :---: | :---: |
-| ![Dashboard Console](assets/Screenshot_2026-07-27_14_10_26.png) | ![Backend Server Logs](assets/Screenshot_2026-07-27_14_10_53.jpg) |
+| ![Dashboard Console](assets/shadowwall.png) | ![Backend Server Logs](assets/server.png) |
 
 | 🌐 Python Web Server Terminal | 🧪 15+ Vector Threat Simulation Suite |
 | :---: | :---: |
-| ![Frontend Web Server](assets/Screenshot_2026-07-27_14_11_04.png) | ![Attack Test Suite](assets/Screenshot_2026-07-27_14_11_15.jpg) |
+| ![Frontend Web Server](assets/webserver.png) | ![Attack Test Suite](assets/attack.png) |
 
 ---
 
