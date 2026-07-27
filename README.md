@@ -13,7 +13,8 @@
 
 | 📊 Live Monitoring Dashboard | ⚡ Backend WAF Logs |
 | :---: | :---: |
-| ![Dashboard Console](assets/Screenshot_2026-07-27_14_10_26.png) | ![Backend Server Logs](assets/Screenshot_2026-07-27_14_10_53.jpg) |
+| ![Dashboard Console](<img width="1920" height="891" alt="shadowall" src="https://github.com/user-attachments/assets/3a6d2e5c-e993-47e8-a13a-6dfd742a4246" />
+) | ![Backend Server Logs](assets/Screenshot_2026-07-27_14_10_53.jpg) |
 
 | 🌐 Python Web Server Terminal | 🧪 15+ Vector Threat Simulation Suite |
 | :---: | :---: |
